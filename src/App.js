@@ -4,8 +4,8 @@ import { BrowserRouter, Outlet, Routes, Route } from 'react-router-dom';
 import { Provider, connect } from 'react-redux';
 
 // Styles
-import './styles/externalStyles.css';
-import './styles/generalStyles.css';
+import './styles/external.css';
+import './styles/general.css';
 import './App.css';
 import { store } from './services/redux/store';
 import apolloClient from './services/graphql/apolloSetup';
