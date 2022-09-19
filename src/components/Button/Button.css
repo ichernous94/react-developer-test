@@ -1,29 +1,41 @@
 .reusable-btn {
-  width: 292px;
-  height: 52px;
-  left: 929px;
-  top: 560px;
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 120%;
-  text-transform: uppercase;
+   width: 292px;
+   height: 52px;
+   left: 929px;
+   top: 560px;
+   font-family: 'Raleway';
+   font-style: normal;
+   font-weight: 600;
+   font-size: 16px;
+   line-height: 120%;
+   text-transform: uppercase;
 }
 
 .primary {
-  border: none;
-  color: #ffffff;
-  background: #5ece7b;
+   border: none;
+   color: #ffffff;
+   background: #5ece7b;
 }
 
 .secondary {
-  background: #ffffff;
-  border: 1px solid black;
-  color: #000;
+   background: #ffffff;
+   border: 1px solid black;
+   color: #000;
 }
 
 .reusable-btn:hover {
-  box-shadow: 0 4px 17px rgba(12, 12, 12, 0.1);
-  transform: translate3d(0, 1px, 0);
+   box-shadow: 0 4px 17px rgba(12, 12, 12, 0.1);
+   transform: translate3d(0, 1px, 0);
+}
+
+.primary.disabled {
+   background: #80e79c;
+}
+
+.disabled {
+   cursor: not-allowed;
+}
+
+.disabled:hover {
+   transform: none;
 }

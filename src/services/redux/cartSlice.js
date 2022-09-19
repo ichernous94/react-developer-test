@@ -3,17 +3,6 @@ import { isEqual } from 'lodash';
 
 const initialState =
   JSON.parse(localStorage.getItem('scandiweb-cart-list')) || [];
-// cart[
-// {
-//    quantity:number,
-//    productDetails:{
-//       id:
-//       attributes:[],
-//       prices:[]
-//       etc
-//    }
-// }
-// ]
 
 const updateCartLocalStorage = (cart) => {
   localStorage.setItem('scandiweb-cart-list', JSON.stringify(cart));

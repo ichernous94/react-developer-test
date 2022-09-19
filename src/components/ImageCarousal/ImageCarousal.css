@@ -1,8 +1,23 @@
 .carousal-img-container {
-  position: relative;
+   position: relative;
 }
 
-.carousal-img-container,
+.carousal-img-container {
+   width: 230px;
+   height: 100%;
+}
 .carousal-img {
-  width: 200px;
+   width: 100%;
+}
+
+.arrow-group {
+   opacity: 0.9;
+   display: flex;
+   position: absolute;
+   right: 10px;
+   bottom: 10px;
+}
+
+.arrow-group img {
+   margin: 5px;
 }
