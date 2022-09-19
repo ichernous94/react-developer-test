@@ -1,16 +1,20 @@
 import { Component, createRef } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import clsx from 'clsx';
 
-import { setCurrency } from '../../services/redux/currencySlice';
-
 import './Navbar.css';
+
+import { setCurrency } from '../../services/redux/currencySlice';
+import { resetCart } from '../../services/redux/cartSlice';
+import { getCartDetails } from '../../services/helpers/generalHelper';
+
 import aLogo from '../../assets/icons/a-logo.svg';
 import emptyCart from '../../assets/icons/empty-cart.svg';
 import arrowDown from '../../assets/icons/arrow-down.svg';
 import arrowUp from '../../assets/icons/arrow-up.svg';
 
+import Cart from '../../pages/Cart';
 import Button from '../../components/Button';
 
 class Navbar extends Component {
@@ -19,13 +23,15 @@ class Navbar extends Component {
     this.state = {
       showCurrencyTab: false,
       showCart: false,
-      selectedNav: 0,
       currencyDropdownRef: createRef(),
       cartDropdownRef: createRef()
     };
   }
   selectCurrency = (selectedCurrency) => {
     this.props.setCurrency(selectedCurrency);
+    this.setState((state) => ({
+      showCurrencyTab: false
+    }));
   };
 
   listenToOutsideClick = (stateValue, ref) => {
@@ -45,7 +51,10 @@ class Navbar extends Component {
       categories,
       currencies = [],
       currency: selectedCurrency,
-      cart = []
+      cart = [],
+      resetCart,
+      setNavIndex,
+      selectedNav
     } = this.props;
 
     const {
@@ -54,29 +63,15 @@ class Navbar extends Component {
       currencyDropdownRef,
       cartDropdownRef
     } = this.state;
-    const currencyList = (
-      <ul>
-        {currencies.map(({ symbol, label }, index) => (
-          <li key={index} onClick={() => this.selectCurrency(symbol)}>
-            {`${symbol} ${label}`}
-          </li>
-        ))}
-      </ul>
-    );
 
     const navBarLinks = categories.map((category, index) => {
       return (
         <div className="nav-items" key={`${index}-${category}`}>
           <NavLink
-            onClick={() =>
-              this.setState((state) => ({
-                ...state,
-                selectedNav: index
-              }))
-            }
+            onClick={() => setNavIndex(index)}
             to={`/products/${category}`}
             className={({ isActive }) =>
-              `nav-text ${isActive || index === this.state.selectedNav
+              `nav-text ff-raleway ${isActive || (index != null && index === selectedNav)
                 ? 'nav-selected'
                 : ''
               }`
@@ -85,7 +80,7 @@ class Navbar extends Component {
               <>
                 {category.toUpperCase()}
                 <div
-                  className={`nav-bar ${!isActive && index !== this.state.selectedNav
+                  className={`nav-bar ${!isActive && index !== selectedNav
                       ? 'bar-hidden'
                       : ''
                     }`}
@@ -103,28 +98,42 @@ class Navbar extends Component {
       <img className="arrow-icon" src={arrowUp} alt="arrow up icon" />
     );
 
+    const currencyList = (
+      <ul>
+        {currencies.map(({ symbol, label }, index) => (
+          <li
+            className="ff-raleway"
+            key={index}
+            onClick={() => this.selectCurrency(symbol)}
+          >
+            {`${symbol} ${label}`}
+          </li>
+        ))}
+      </ul>
+    );
+
     const currencyTab = (
-      <div
-        ref={currencyDropdownRef}
-        className="currency-group"
-        onClick={(e) => {
-          this.setState((state) => ({
-            showCurrencyTab: !state.showCurrencyTab,
-            showCart: false
-          }));
-          this.listenToOutsideClick(
-            'showCurrencyTab',
-            currencyDropdownRef
-          );
-        }}
-      >
-        <p className="hover-effect">
-          {selectedCurrency}
-          <span className="currency-ico">
+      <div ref={currencyDropdownRef} className="currency-group">
+        <div
+          className="hover-effect currency-btn-group"
+          onClick={(e) => {
+            this.setState((state) => ({
+              showCurrencyTab: !state.showCurrencyTab,
+              showCart: false
+            }));
+            this.listenToOutsideClick(
+              'showCurrencyTab',
+              currencyDropdownRef
+            );
+          }}
+        >
+          <h4 className="ff-raleway">{selectedCurrency}</h4>
+          <div className="currency-ico">
             {!showCurrencyTab && arrowDownIco}
             {showCurrencyTab && arrowUpIco}
-          </span>
-        </p>
+          </div>
+        </div>
+
         <div
           className={clsx({
             'currency-list': true,
@@ -137,32 +146,37 @@ class Navbar extends Component {
       </div>
     );
 
-    const cartTab = (
-      <div ref={cartDropdownRef} className="cart-icon-group">
-        <p>
-          <img
-            className="cart-icon hover-effect"
-            src={emptyCart}
-            alt="cart icon"
-            onClick={() => {
-              this.setState((state) => ({
-                showCart: !state.showCart,
-                showCurrencyTab: false
-              }));
-              this.listenToOutsideClick('showCart', currencyDropdownRef);
-            }}
-          />
-        </p>
+    const { totalQuantity, totalCost } = getCartDetails(
+      cart,
+      selectedCurrency
+    );
 
+    const cartTab = (
+      <div ref={cartDropdownRef} className="cart-group">
         <div
-          className={clsx({
-            'cart-badge': true,
-            'element-transition': true,
-            show: cart.length > 0
-          })}
+          className="cart-btn-group  hover-effect"
+          onClick={() => {
+            this.setState((state) => ({
+              showCart: !state.showCart,
+              showCurrencyTab: false
+            }));
+            this.listenToOutsideClick('showCart', cartDropdownRef);
+          }}
         >
-          {cart.length}
+          <img className="cart-icon" src={emptyCart} alt="cart icon" />
+
+          <div
+            className={clsx({
+              'cart-badge': true,
+              'element-transition': true,
+              show: cart.length > 0,
+              'ff-roboto': true
+            })}
+          >
+            {totalQuantity}
+          </div>
         </div>
+
         <div
           className={clsx({
             'cart-tab': true,
@@ -172,22 +186,48 @@ class Navbar extends Component {
         >
           <div className="cart-content">
             {/* cart tab info comes here */}
+            {cart.length > 0 && (
+              <div className="cart-detail">
+                <h4 className="title ff-roboto">My Bag, </h4>
+                <h4 className="value ff-raleway">
+                  {totalQuantity} items
+                </h4>
+              </div>
+            )}
+            {cart.length > 0 && <Cart isCartTab={true} />}
             {cart.length === 0 && <p>You have an empty cart.</p>}
           </div>
+          <div className="cart-total">
+            <h4 className="title ff-roboto">Total</h4>
+            <h4 className="value ff-raleway">
+              {selectedCurrency}
+              {totalCost}
+            </h4>
+          </div>
           <div className="cart-tab-buttons">
-            <Button
-              name={'VIEW BAG'}
-              onClick={() => {
-                //navigate to cart page
-              }}
-              variant={'secondary'}
-            />
-            <Button
-              name={'CHECK OUT'}
-              onClick={() => {
-                //checkout function
-              }}
-            />
+            <div className="cart-tab-btn">
+              <Link to={'/cart'}>
+                <Button
+                  name={'VIEW BAG'}
+                  variant={'secondary'}
+                  onClick={() => {
+                    this.setState((state) => ({
+                      showCart: !state.showCart,
+                      showCurrencyTab: false
+                    }));
+                  }}
+                />
+              </Link>
+            </div>
+
+            <div className="cart-tab-btn">
+              <Button
+                name={'CHECK OUT'}
+                onClick={() => {
+                  resetCart();
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -214,7 +254,7 @@ class Navbar extends Component {
     );
   }
 }
-const mapStateToProps = ({ currency }) => ({ currency });
-const mapDispatchToProps = { setCurrency };
+const mapStateToProps = ({ currency, cart }) => ({ currency, cart });
+const mapDispatchToProps = { setCurrency, resetCart };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Navbar);
