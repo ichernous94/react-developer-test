@@ -4,3 +4,19 @@
   padding: 0 30px;
   margin: 0 auto;
 }
+
+.header {
+  position: fixed;
+  width: 100%;
+  max-width: 1200px;
+  height: 80px;
+  top: 0px;
+  z-index: 6;
+  background-color: #ffff;
+}
+
+.main-body {
+  position: relative;
+  top: 82px;
+  padding-top: 30px;
+}
