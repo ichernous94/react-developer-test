@@ -16,171 +16,174 @@ import { addProductToCart } from '../../services/redux/cartSlice';
 import { getAmount } from '../../services/helpers/generalHelper';
 
 class ProductDetails extends Component {
-   constructor(props) {
-      super(props);
-      this.state = {
-         brand: '',
-         name: '',
-         attributes: [],
-         selectedAttributes: [],
-         price: {
-            amount: '',
-            currency: { symbol: '' }
-         },
-         gallery: [],
-         description: '',
-         prices: [],
-         inStock: false
-      };
-   }
+  constructor(props) {
+    super(props);
+    this.state = {
+      brand: '',
+      name: '',
+      attributes: [],
+      selectedAttributes: [],
+      price: {
+        amount: '',
+        currency: { symbol: '' },
+      },
+      gallery: [],
+      description: '',
+      prices: [],
+      inStock: false,
+    };
+  }
 
-   async componentDidMount() {
-      await this.fetchProductDetails();
-   }
+  async componentDidMount() {
+    await this.fetchProductDetails();
+  }
 
-   fetchProductDetails = async () => {
-      const {
-         data: { product }
-      } = await getProductDescription(this.props.params.productId);
-      const { name, attributes, brand, gallery, description, prices, inStock } =
-         product;
+  fetchProductDetails = async () => {
+    const {
+      data: { product },
+    } = await getProductDescription(this.props.params.productId);
+    const { name, attributes, brand, gallery, description, prices, inStock } =
+      product;
 
-      const price = getAmount(prices, this.props.currency);
+    const price = getAmount(prices, this.props.currency);
 
-      const selectedAttributes = attributes.map(({ id, name, items }) => {
-         return {
-            id,
-            name,
-            selectedAttribute: items[0]?.id
-         };
+
+    this.setState(() => ({
+      brand,
+      name,
+      attributes,
+      price,
+      gallery,
+      selectedImage: gallery[0],
+      description,
+      prices,
+      inStock,
+    }));
+  };
+
+  selectAttribute = (attributeId, selectedAttribute) => {
+    let selectedAttributes = [...this.state.selectedAttributes];
+
+    if (!selectedAttributes.length) {
+      selectedAttributes = this.state.attributes.map(({ id, name, items }) => {
+        return {
+          id,
+          name,
+          selectedAttribute: items[0]?.id,
+        };
       });
+    }
 
-      this.setState(() => ({
-         brand,
-         name,
-         attributes,
-         selectedAttributes,
-         price,
-         gallery,
-         selectedImage: gallery[0],
-         description,
-         prices,
-         inStock
-      }));
-   };
+    const attrIndex = selectedAttributes.findIndex(
+      (attr) => attr.id === attributeId
+    );
 
-   selectAttribute = (attributeId, selectedAttribute) => {
-      const selectedAttributes = [...this.state.selectedAttributes];
+    const attrObj = {...selectedAttributes[attrIndex]}
 
-      const attrIndex = selectedAttributes.findIndex(
-         (attr) => attr.id === attributeId
-      );
+    attrObj.selectedAttribute = selectedAttribute;
+    selectedAttributes[attrIndex] = attrObj;
+    
+    this.setState({
+      selectedAttributes
+    });
+  };
 
-      selectedAttributes[attrIndex].selectedAttribute = selectedAttribute;
+  addProductToCartHandler = () => {
+    const {
+      brand,
+      name,
+      attributes,
+      selectedAttributes,
+      gallery,
+      description,
+      prices,
+    } = this.state;
+    this.props.addProductToCart({
+      brand,
+      name,
+      attributes,
+      selectedAttributes,
+      gallery,
+      description,
+      prices,
+    });
+  };
 
-      this.setState(() => ({
-         selectedAttributes
-      }));
-   };
+  selectImage = (imageIndex) => {
+    this.setState((state) => ({
+      selectedImage: state.gallery[imageIndex],
+    }));
+  };
 
-   addProductToCartHandler = () => {
-      const {
-         brand,
-         name,
-         attributes,
-         selectedAttributes,
-         gallery,
-         description,
-         prices
-      } = this.state;
-      this.props.addProductToCart({
-         brand,
-         name,
-         attributes,
-         selectedAttributes,
-         gallery,
-         description,
-         prices
-      });
-   };
-
-   selectImage = (imageIndex) => {
-      this.setState((state) => ({
-         selectedImage: state.gallery[imageIndex]
-      }));
-   };
-
-   render() {
-      const {
-         brand,
-         name,
-         attributes,
-         selectedAttributes,
-         gallery,
-         selectedImage,
-         description,
-         prices,
-         inStock
-      } = this.state;
-      const { currency } = this.props;
-      const amount = !isEmpty(prices) ? getAmount(prices, currency) : 0;
-      return (
-         <div className="product-description-page">
-            <div className="side-gallery">
-               {gallery.map((image, index) => (
-                  <div
-                     key={index}
-                     className="side-image cursor-pointer hover-effect"
-                     onClick={() => this.selectImage(index)}
-                  >
-                     <img src={image} alt={image}></img>
-                     <div className="img-overlay"></div>
-                  </div>
-               ))}
+  render() {
+    const {
+      brand,
+      name,
+      attributes,
+      selectedAttributes,
+      gallery,
+      selectedImage,
+      description,
+      prices,
+      inStock,
+    } = this.state;
+    const { currency } = this.props;
+    const amount = !isEmpty(prices) ? getAmount(prices, currency) : 0;
+    return (
+      <div className="product-description-page">
+        <div className="side-gallery">
+          {gallery.map((image, index) => (
+            <div
+              key={index}
+              className="side-image cursor-pointer hover-effect"
+              onClick={() => this.selectImage(index)}
+            >
+              <img src={image} alt={image}></img>
+              <div className="img-overlay"></div>
             </div>
-            <div className="selected-image">
-               <img src={selectedImage} alt="selected-product"></img>
-               {!inStock && (
-                  <h4 className="out-of-stock center-xy">OUT OF STOCK</h4>
-               )}
-               <div className="img-overlay"></div>
-            </div>
-            <div className="product-details">
-               <h2 className="p-brand ff-raleway">{brand}</h2>
-               <h2 className="p-name ff-raleway">{name}</h2>
+          ))}
+        </div>
+        <div className="selected-image">
+          <img src={selectedImage} alt="selected-product"></img>
+          {!inStock && <h4 className="out-of-stock center-xy">OUT OF STOCK</h4>}
+          <div className="img-overlay"></div>
+        </div>
+        <div className="product-details">
+          <h2 className="p-brand ff-raleway">{brand}</h2>
+          <h2 className="p-name ff-raleway">{name}</h2>
 
-               {attributes.map((attribute, index) => {
-                  let selectedAttribute = selectedAttributes.find(
-                     (attr) => attribute.id === attr.id
-                  )?.selectedAttribute;
-                  return (
-                     <Attributes
-                        key={`${selectedAttribute}-${index}`}
-                        attributes={attribute}
-                        selectedAttribute={selectedAttribute}
-                        selectAttribute={(type, attributeId) =>
-                           this.selectAttribute(type, attributeId)
-                        }
-                     />
-                  );
-               })}
-               <h3 className="price-title">PRICE:</h3>
-               <h3 className="price-value ff-raleway">
-                  {currency}
-                  {amount}
-               </h3>
-               <Button
-                  onClick={() => this.addProductToCartHandler()}
-                  name={'ADD TO CART'}
-                  disabled={!inStock}
-               />
-               <div className="product-description ff-roboto">
-                  {parseHtmlString(description)}
-               </div>
-            </div>
-         </div>
-      );
-   }
+          {attributes.map((attribute, index) => {
+            let selectedAttribute = selectedAttributes.find(
+              (attr) => attribute.id === attr.id
+            )?.selectedAttribute;
+            return (
+              <Attributes
+                key={`${selectedAttribute}-${index}`}
+                attributes={attribute}
+                selectedAttribute={selectedAttribute}
+                selectAttribute={(type, attributeId) =>
+                  this.selectAttribute(type, attributeId)
+                }
+              />
+            );
+          })}
+          <h3 className="price-title">PRICE:</h3>
+          <h3 className="price-value ff-raleway">
+            {currency}
+            {amount}
+          </h3>
+          <Button
+            onClick={() => this.addProductToCartHandler()}
+            name={'ADD TO CART'}
+            disabled={!inStock}
+          />
+          <div className="product-description ff-roboto">
+            {parseHtmlString(description)}
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
 const mapStateToProps = ({ currency }) => ({
